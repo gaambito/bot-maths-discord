@@ -2,9 +2,13 @@ name: Envoi Quotidien Maths
 
 on:
   schedule:
-    # Ceci signifie : Tous les jours à 06h00 UTC (donc 07h00 ou 08h00 en France selon l'été/hiver)
-    - cron: '0 6 * * *'
-  # Permet de lancer manuellement pour tester depuis l'interface GitHub
+    # '0 17 * * 1-5' signifie : 
+    # 0: à la 0ème minute de l'heure
+    # 17: à la 17ème heure (17h00 UTC = 18h00 en France en hiver)
+    # *: tous les jours du mois
+    # *: tous les mois
+    # 1-5: du Lundi (1) au Vendredi (5)
+    - cron: '0 17 * * 1-5' 
   workflow_dispatch:
 
 jobs:
