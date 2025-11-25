@@ -1,0 +1,29 @@
+name: Envoi Quotidien Maths
+
+on:
+  schedule:
+    # Ceci signifie : Tous les jours à 06h00 UTC (donc 07h00 ou 08h00 en France selon l'été/hiver)
+    - cron: '0 6 * * *'
+  # Permet de lancer manuellement pour tester depuis l'interface GitHub
+  workflow_dispatch:
+
+jobs:
+  run-math-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v3
+
+      - name: Installer Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Installer les dépendances
+        run: pip install requests
+
+      - name: Lancer le script
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python daily_math.py
