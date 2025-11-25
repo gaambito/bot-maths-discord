@@ -115,7 +115,7 @@ message_final = f"""
 ## 📅 Défi Calcul du {date_jour} 🧠
 
 Voici tes 10 calculs du jour ! 
-*Objectif : Fais-les de tête ou sur un brouillon, puis vérifie.*
+*Objectif : Fais-les de tête, puis vérifie.*
 
 {chr(10).join(exercices_msg)}
 
