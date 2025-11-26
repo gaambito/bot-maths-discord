@@ -1,33 +1,59 @@
-name: Envoi Quotidien Maths
+name: Envoi Quotidien Maths Double
 
 on:
   schedule:
-    # '0 17 * * 1-5' signifie : 
-    # 0: à la 0ème minute de l'heure
-    # 17: à la 17ème heure (17h00 UTC = 18h00 en France en hiver)
-    # *: tous les jours du mois
-    # *: tous les mois
-    # 1-5: du Lundi (1) au Vendredi (5)
+    # 1. Défi : Lundi au Vendredi à 17h00 UTC (18h00 CET/CEST)
     - cron: '0 17 * * 1-5' 
+    # 2. Correction : Lundi au Vendredi à 19h00 UTC (20h00 CET/CEST)
+    - cron: '0 19 * * 1-5' 
   workflow_dispatch:
 
 jobs:
-  run-math-script:
+  job_challenge:
+    # Ce job s'exécute si le cron de 17h00 se déclenche, ou si l'on lance manuellement.
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 17 * * 1-5'
     runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v3
+
+      - name: Préparer l'environnement
+        run: |
+          pip install requests argparse
+
+      - name: Lancer le Défi (Génération et Sauvegarde)
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python daily_math.py challenge
+        
+      - name: Téléverser l'Artifact des données
+        uses: actions/upload-artifact@v3
+        with:
+          name: math-data
+          path: data.json
+          # Conserver l'artifact pendant seulement 1 jour
+          retention-days: 1
+
+  job_correction:
+    # Ce job s'exécute si le cron de 19h00 se déclenche.
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 19 * * 1-5'
+    runs-on: ubuntu-latest
+    needs: job_challenge # Assure que ce job ne se lance que si job_challenge a eu lieu (surtout pour le test manuel)
 
     steps:
       - name: Récupérer le code
         uses: actions/checkout@v3
 
-      - name: Installer Python
-        uses: actions/setup-python@v4
+      - name: Télécharger l'Artifact des données
+        uses: actions/download-artifact@v3
         with:
-          python-version: '3.9'
+          name: math-data
 
-      - name: Installer les dépendances
-        run: pip install requests
+      - name: Préparer l'environnement
+        run: |
+          pip install requests argparse
 
-      - name: Lancer le script
+      - name: Lancer la Correction (Lecture et Envoi)
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: python daily_math.py
+        run: python daily_math.py correction
